@@ -11,10 +11,8 @@ function drawLine(ctx,x1,y1,x2,y2){
 	ctx.beginPath();
 	ctx.moveTo(x1,y1);
 	ctx.lineTo(x2,y2);
-
 	ctx.stroke();
 }
-
 
 
 var g = 0;
@@ -56,7 +54,7 @@ function myMove() {
 	ctx.clearRect(0, 0, c.width, c.height);
 	
 	g = document.getElementById("gravity").value;
-	length = 150;
+	length = document.getElementById("length").value;
 	radius = 20;
 	damping = document.getElementById("damping").value;
 
@@ -76,7 +74,9 @@ function myMove() {
 	var pivot_x = c.width/2;
 	var pivot_y = c.height/2;
 
-
+	var runge = (document.getElementById("runge").checked);
+	var smalltheta = (document.getElementById("smalltheta").checked);
+	var euler = (document.getElementById("euler").checked);
   	
   	clearInterval(id);
   	id = setInterval(frame, 0.05);
@@ -84,54 +84,56 @@ function myMove() {
   	
 	function frame() {
 		ctx.clearRect(0, 0, c.width, c.height);
-		/*
-		ddtheta = -g/length*Math.sin(theta) - damping * dtheta ;
-		dtheta = ddtheta * t + dtheta;
-		theta = dtheta*t + theta;
-		*/
+
 		//dont really care about the first 't' variable
 		//since there is no dependence
 		//we override it and use it as step size
-		var k_0 = t *f(t,theta,dtheta);
-		var l_0 = t*h(t,theta,dtheta);
+		if(runge){
+			var k_0 = t *f(t,theta,dtheta);
+			var l_0 = t*h(t,theta,dtheta);
 
-		var k_1 = t*f(t,theta + 0.5*k_0, dtheta + 0.5 *l_0);
-		var l_1 =t*h(t,theta + 0.5*k_0, dtheta + 0.5 *l_0);
+			var k_1 = t*f(t,theta + 0.5*k_0, dtheta + 0.5 *l_0);
+			var l_1 =t*h(t,theta + 0.5*k_0, dtheta + 0.5 *l_0);
 		
-		var k_2 =  t*f(t,theta + 0.5*k_1, dtheta + 0.5 *l_1);
-		var l_2 =  t*h(t,theta + 0.5*k_1, dtheta + 0.5 *l_1);
+			var k_2 =  t*f(t,theta + 0.5*k_1, dtheta + 0.5 *l_1);
+			var l_2 =  t*h(t,theta + 0.5*k_1, dtheta + 0.5 *l_1);
 		
-		var k_3 =  t*f(t,theta + k_2, dtheta + l_2);
-		var l_3 =  t*h(t,theta + k_2, dtheta + l_2);
+			var k_3 =  t*f(t,theta + k_2, dtheta + l_2);
+			var l_3 =  t*h(t,theta + k_2, dtheta + l_2);
 		
-		theta = theta + 1/6*(k_0+2*k_1+2*k_2+k_3);
-		dtheta = dtheta + 1/6*(l_0+2*l_1+2*l_2+l_3);
+			theta = theta + 1/6*(k_0+2*k_1+2*k_2+k_3);
+			dtheta = dtheta + 1/6*(l_0+2*l_1+2*l_2+l_3);
 
-		ctx.fillText("theta:"+(theta*180/Math.PI %360).toFixed(2),0,10);
-		var x = pivot_x + length * Math.cos(theta);
-		var y = pivot_y + length * Math.sin(theta); 
-		drawCircle(ctx,y,x,radius,"red");
-		drawLine(ctx,pivot_x,pivot_y,y,x);
+			ctx.fillText("theta:"+(theta*180/Math.PI %360).toFixed(2),0,10);
+			//ctx.fillText("theta:"+(theta*180/Math.PI %360).toFixed(2),0,10);
+			//ctx.fillText("theta:"+(theta*180/Math.PI %360).toFixed(2),0,10);
+			//ctx.fillText("small theta:"+(theta*180/Math.PI %360).toFixed(2),0,10);
+			var x = pivot_x + length * Math.cos(theta);
+			var y = pivot_y + length * Math.sin(theta); 
+			drawCircle(ctx,y,x,radius,"red");
+			drawLine(ctx,pivot_x,pivot_y,y,x);
+		}
+		if(euler){
+			ddtheta1 = -g/length*Math.sin(theta1) - damping * dtheta1 ;
+			dtheta1 = ddtheta1 * t + dtheta1;
+			theta1 = dtheta1*t + theta1;
 		
+			var x = pivot_x + length * Math.cos(theta1);
+			var y = pivot_y + length * Math.sin(theta1); 
+			drawCircle(ctx,y,x,radius,"blue");
+			drawLine(ctx,pivot_x,pivot_y,y,x);
+		}
 		
-		ddtheta1 = -g/length*Math.sin(theta1) - damping * dtheta1 ;
-		dtheta1 = ddtheta1 * t + dtheta1;
-		theta1 = dtheta1*t + theta1;
+		if(smalltheta){
+			ddtheta2 = -g/length * theta2 - damping *dtheta2;
+			dtheta2 = ddtheta2 * t + dtheta2;
+			theta2 = dtheta2*t + theta2;
 		
-		var x = pivot_x + length * Math.cos(theta1);
-		var y = pivot_y + length * Math.sin(theta1); 
-		drawCircle(ctx,y,x,radius,"blue");
-		drawLine(ctx,pivot_x,pivot_y,y,x);
-		
-		ddtheta2 = -g/length * theta2 - damping *dtheta2;
-		dtheta2 = ddtheta2 * t + dtheta2;
-		theta2 = dtheta2*t + theta2;
-		
-		var x = pivot_x + length * Math.cos(theta2);
-		var y = pivot_y + length * Math.sin(theta2); 
-		drawCircle(ctx,y,x,radius,"green");
-		drawLine(ctx,pivot_x,pivot_y,y,x);
-		
+			var x = pivot_x + length * Math.cos(theta2);
+			var y = pivot_y + length * Math.sin(theta2); 
+			drawCircle(ctx,y,x,radius,"green");
+			drawLine(ctx,pivot_x,pivot_y,y,x);
+		}
 		
 		
 	}
