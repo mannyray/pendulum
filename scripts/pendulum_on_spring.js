@@ -33,6 +33,9 @@ var M = 0;
 var ddtheta1 = 0;
 var dtheta1 = 0;
 var theta1 = 0;
+var spring_x1 = 0;
+var spring_dx1 = 0;
+var spring_ddx1 = 0;
 
 var ddtheta2 = 0;
 var dtheta2 = 0;
@@ -64,6 +67,13 @@ function myMove() {
 
 	theta = document.getElementById("theta").value/180*Math.PI;
 	dtheta = document.getElementById("dtheta").value/180*Math.PI;
+	
+	ddtheta1 = ddtheta;
+	dtheta1 = dtheta;
+	theta1 = theta;
+	spring_x1 = 0;
+	spring_dx1 = 0;
+	spring_ddx1 = 0;
 	
 	//spring_x = document.getElementById("x").value;
 	//spring_dx = document.getElementById("dx").value;
@@ -99,74 +109,108 @@ function myMove() {
 		
 		var x =  length * Math.sin(theta);
 		var y =  length * Math.cos(theta);
-		drawCircle(ctx,y,x,radius,"blue");
+		
+		/*drawCircle(ctx,y,x,radius,"blue");
 		drawLine(ctx,spring_length + spring_x,spring_y,spring_length + spring_x+x,spring_y+y);
 		drawLine(ctx,0,spring_y,spring_length + spring_x,spring_y);
+		*/
 		
 		
-		//dont really care about the first 't' variable
-		//since there is no dependence
-		//we override it and use it as step size
 		
-		/*
-		if(runge){
-			var k_0 = t *f(t,theta,dtheta);
-			var l_0 = t*h(t,theta,dtheta);
 
-			var k_1 = t*f(t,theta + 0.5*k_0, dtheta + 0.5 *l_0);
-			var l_1 =t*h(t,theta + 0.5*k_0, dtheta + 0.5 *l_0);
-		
-			var k_2 =  t*f(t,theta + 0.5*k_1, dtheta + 0.5 *l_1);
-			var l_2 =  t*h(t,theta + 0.5*k_1, dtheta + 0.5 *l_1);
-		
-			var k_3 =  t*f(t,theta + k_2, dtheta + l_2);
-			var l_3 =  t*h(t,theta + k_2, dtheta + l_2);
-		
-			theta = theta + 1/6*(k_0+2*k_1+2*k_2+k_3);
-			dtheta = dtheta + 1/6*(l_0+2*l_1+2*l_2+l_3);
 
-			ctx.fillText("theta:"+(theta*180/Math.PI %360).toFixed(2),0,10);
-			//ctx.fillText("theta:"+(theta*180/Math.PI %360).toFixed(2),0,10);
-			//ctx.fillText("theta:"+(theta*180/Math.PI %360).toFixed(2),0,10);
-			//ctx.fillText("small theta:"+(theta*180/Math.PI %360).toFixed(2),0,10);
-			var x = pivot_x + length * Math.cos(theta);
-			var y = pivot_y + length * Math.sin(theta); 
-			drawCircle(ctx,y,x,radius,"red");
-			drawLine(ctx,pivot_x,pivot_y,y,x);
-		}*/
 		/*
-		if(euler){
-			ddtheta1 = -g/length*Math.sin(theta1) - damping * dtheta1 ;
-			dtheta1 = ddtheta1 * t + dtheta1;
-			theta1 = dtheta1*t + theta1;
+		var k_1 = t*ddx(k,spring_x1,spring_dx1,theta1,dtheta1,M,length);
+		var l_1 = t*DDtheta(k_1,theta1,length);
 		
-			var x = pivot_x + length * Math.cos(theta1);
-			var y = pivot_y + length * Math.sin(theta1); 
-			drawCircle(ctx,y,x,radius,"blue");
-			drawLine(ctx,pivot_x,pivot_y,y,x);
-		}*/
+		var s_dx1 = k_1*t+spring_dx1;
+		var s_x1 = s_dx1*t + spring_x1;
+		var dth1 = l_1*t + dtheta1;
+		var th1 = dth1*t + theta1;
+
+		var k_2 = t*ddx(k,spring_x1+s_x1/2,spring_dx1+s_dx1/2,theta1+th1/2,dtheta1+dth1/2,M,length);
+		var l_2 = t*DDtheta(k_2,theta1 + th1/2,length);
 		
-		/*
-		if(smalltheta){
-			ddtheta2 = -g/length * theta2 - damping *dtheta2;
-			dtheta2 = ddtheta2 * t + dtheta2;
-			theta2 = dtheta2*t + theta2;
+		s_dx1 = k_2*t+spring_dx1;
+		s_x1 = s_dx1*t + spring_x1;
+		dth1 = l_2*t + dtheta1;
+		th1 = dth1*t + theta1;
+		var k_3 = t*ddx(k,spring_x1+s_x1/2,spring_dx1+s_dx1/2,theta1+th1/2,dtheta1+dth1/2,M,length);
+		var l_3 = t*DDtheta(k_3,theta1 + th1/2,length);
 		
-			var x = pivot_x + length * Math.cos(theta2);
-			var y = pivot_y + length * Math.sin(theta2); 
-			drawCircle(ctx,y,x,radius,"green");
-			drawLine(ctx,pivot_x,pivot_y,y,x);
-		}*/
+		s_dx1 = k_3*t+spring_dx1;
+		s_x1 = s_dx1*t + spring_x1;
+		dth1 = l_3*t + dtheta1;
+		th1 = dth1*t + theta1;
+		var k_4 = t*ddx(k,spring_x1+s_x1/2,spring_dx1+s_dx1/2,theta1+th1/2,dtheta1+dth1/2,M,length);
+		var l_4 = t*DDtheta(k_4,theta1 + th1/2,length);
 		
+		var k_5 = 1/6 * (k_1+2*k_2+2*k_3+k_4);
+		var l_5 = 1/6 * (l_1+2*l_2+2*l_3+l_4);
+		
+		dtheta1 = l_5 + dtheta1;
+		theta1 = dtheta1*t + theta1;
+		spring_dx1 = k_5+spring_dx1;
+		spring_x1 = spring_dx1*t + spring_x1;
+		
+		x =  length * Math.sin(theta1);
+		y =  length * Math.cos(theta1);*/
+		
+		
+		var n_1 = t*dx(spring_dx1);//dx
+		var m_1 = t*Dtheta(dtheta1);//dtheta
+		var k_1 = t*ddx(k,spring_x1,spring_dx1,theta1,dtheta1,M,length);//ddx
+		var l_1 = t*DDtheta(k,spring_x1,spring_dx1,theta1,dtheta1,M,length);//ddtheta
+		
+		var n_2 = t*dx(spring_dx1 + n_1/2);//dx
+		var m_2 = t*Dtheta(dtheta1 + m_1/2);//dtheta
+		var k_2 = t*ddx(k,spring_x1+t/2,spring_dx1+n_1/2,theta1+t/2,dtheta1+m_1/2,M,length);//ddx
+		var l_2 = t*DDtheta(k,spring_x1+t/2,spring_dx1+n_1/2,theta1+t/2,dtheta1+m_1/2,M,length);//ddtheta
+		
+		var n_3 = t*dx(spring_dx1 + n_2/2);//dx
+		var m_3 = t*Dtheta(dtheta1 + m_2/2);//dtheta
+		var k_3 = t*ddx(k,spring_x1+t/2,spring_dx1+n_2/2,theta1+t/2,dtheta1+m_2/2,M,length);//ddx
+		var l_3 = t*DDtheta(k,spring_x1+t/2,spring_dx1+n_2/2,theta1+t/2,dtheta1+m_2/2,M,length);//ddtheta
+		
+		
+		var n_4 = t*dx(spring_dx1 + n_3);//dx
+		var m_4 = t*Dtheta(dtheta1 + m_3);//dtheta
+		var k_4 = t*ddx(k,spring_x1+t,spring_dx1+n_3,theta1+t,dtheta1+m_3,M,length);//ddx
+		var l_4 = t*DDtheta(k,spring_x1+t,spring_dx1+n_3,theta1+t,dtheta1+m_3,M,length);//ddtheta
+		
+	
+		
+		
+		spring_dx1 = spring_dx1 + 1/6*(k_1+2*k_2+2*k_3+k_4);
+		spring_x1 = spring_dx1 * t+spring_x1;
+		
+		dtheta1 = dtheta1 + 1/6*(l_1+2*l_2+2*l_3+l_4);//l3
+		theta1 = dtheta1*t + theta1;
+		
+
+		
+		x =  length * Math.sin(theta1);
+		y =  length * Math.cos(theta1);
+		drawCircle(ctx,y,x,radius,"red");
+		drawLine(ctx,spring_length + spring_x1,spring_y,spring_length + spring_x1+x,spring_y+y);
+		drawLine(ctx,0,spring_y,spring_length + spring_x1,spring_y);
 		
 	}
 	
+	function dx(DX){
+		return DX;
+	}
+	
+	function Dtheta(DTHETA){
+		return DTHETA;
+	}
+			
 	function ddx(k,x,dx,theta,dtheta,M,l){
 		return -k*x - M*l*(Math.sin(theta) * dtheta * dtheta - g/l*Math.cos(theta)*Math.sin(theta))/(m+M - Math.cos(theta)*Math.cos(theta)*M);
 	}
 
-	function DDtheta(ddx,theta,l){
-		return (-g*Math.sin(theta) - Math.cos(theta) * ddx)/l;
+	function DDtheta(k,x,dx,theta,dtheta,M,l){
+		return (-g*Math.sin(theta) - Math.cos(theta) * ddx(k,x,dx,theta,dtheta,M,l))/l;
 	}
 
 	function f(X, Y, z){
